@@ -72,29 +72,3 @@ func (c *Client) GetWorkflow(id string) (*Workflow, error) {
 
 	return &result.Workflow, nil
 }
-
-// UpdateWorkflowRequest represents a request to update a workflow
-type UpdateWorkflowRequest struct {
-	Name    string                 `json:"name,omitempty"`
-	Enabled *bool                  `json:"enabled,omitempty"`
-	State   map[string]interface{} `json:"state,omitempty"`
-}
-
-// UpdateWorkflow updates a workflow
-func (c *Client) UpdateWorkflow(id string, req *UpdateWorkflowRequest) (*Workflow, error) {
-	endpoint := fmt.Sprintf("/workflows/%s", id)
-
-	respBody, err := c.doRequest("PATCH", endpoint, nil, req)
-	if err != nil {
-		return nil, err
-	}
-
-	var result struct {
-		Workflow Workflow `json:"workflow"`
-	}
-	if err := json.Unmarshal(respBody, &result); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
-	}
-
-	return &result.Workflow, nil
-}

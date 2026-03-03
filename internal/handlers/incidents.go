@@ -114,13 +114,13 @@ func (t *ListIncidentsTool) InputSchema() map[string]interface{} {
 
 // IncidentSummary is a lightweight representation for list responses
 type IncidentSummary struct {
-	Reference  string `json:"reference"`
-	Name       string `json:"name"`
-	Status     string `json:"status"`
-	Severity   string `json:"severity"`
-	CreatedAt  string `json:"created_at"`
-	UpdatedAt  string `json:"updated_at"`
-	Permalink  string `json:"permalink"`
+	Reference string `json:"reference"`
+	Name      string `json:"name"`
+	Status    string `json:"status"`
+	Severity  string `json:"severity"`
+	CreatedAt string `json:"created_at"`
+	UpdatedAt string `json:"updated_at"`
+	Permalink string `json:"permalink"`
 }
 
 func (t *ListIncidentsTool) Execute(args map[string]interface{}) (string, error) {
@@ -128,7 +128,7 @@ func (t *ListIncidentsTool) Execute(args map[string]interface{}) (string, error)
 		PageSize: 25, // Default to 25 for reasonable response sizes
 	}
 
-	// Parse search filter
+	// Parse search filter (client-side - the incident.io API does not support name filtering)
 	searchFilter := ""
 	if search, ok := args["search"].(string); ok && search != "" {
 		searchFilter = strings.ToLower(search)
@@ -203,7 +203,7 @@ func (t *ListIncidentsTool) Execute(args map[string]interface{}) (string, error)
 		return "", err
 	}
 
-	// Apply search filter if provided
+	// Apply search filter client-side if provided
 	filteredIncidents := resp.Incidents
 	if searchFilter != "" {
 		filteredIncidents = nil
@@ -220,13 +220,13 @@ func (t *ListIncidentsTool) Execute(args map[string]interface{}) (string, error)
 		summaries := make([]IncidentSummary, 0, len(filteredIncidents))
 		for _, inc := range filteredIncidents {
 			summaries = append(summaries, IncidentSummary{
-				Reference:  inc.Reference,
-				Name:       inc.Name,
-				Status:     inc.IncidentStatus.Name,
-				Severity:   inc.Severity.Name,
-				CreatedAt:  inc.CreatedAt.Format(time.RFC3339),
-				UpdatedAt:  inc.UpdatedAt.Format(time.RFC3339),
-				Permalink:  inc.Permalink,
+				Reference: inc.Reference,
+				Name:      inc.Name,
+				Status:    inc.IncidentStatus.Name,
+				Severity:  inc.Severity.Name,
+				CreatedAt: inc.CreatedAt.Format(time.RFC3339),
+				UpdatedAt: inc.UpdatedAt.Format(time.RFC3339),
+				Permalink: inc.Permalink,
 			})
 		}
 		incidentsData = summaries
@@ -333,245 +333,6 @@ func (t *GetIncidentTool) Execute(args map[string]interface{}) (string, error) {
 	}
 
 	incident, err := t.apiClient.GetIncident(id)
-	if err != nil {
-		return "", err
-	}
-
-	result, err := json.MarshalIndent(incident, "", "  ")
-	if err != nil {
-		return "", fmt.Errorf("failed to format response: %w", err)
-	}
-
-	return string(result), nil
-}
-
-// CreateIncidentTool creates a new incident
-type CreateIncidentTool struct {
-	apiClient *client.Client
-}
-
-func NewCreateIncidentTool(c *client.Client) *CreateIncidentTool {
-	return &CreateIncidentTool{apiClient: c}
-}
-
-func (t *CreateIncidentTool) Name() string {
-	return "create_incident"
-}
-
-func (t *CreateIncidentTool) Description() string {
-	return "Create a new incident in incident.io"
-}
-
-func (t *CreateIncidentTool) InputSchema() map[string]interface{} {
-	return map[string]interface{}{
-		"type": "object",
-		"properties": map[string]interface{}{
-			"name": map[string]interface{}{
-				"type":        "string",
-				"description": "The incident name/title",
-			},
-			"summary": map[string]interface{}{
-				"type":        "string",
-				"description": "A summary of the incident",
-			},
-			"status": map[string]interface{}{
-				"type":        "string",
-				"description": "Initial status (triage, active, resolved, closed)",
-				"default":     "triage",
-			},
-			"severity_id": map[string]interface{}{
-				"type":        "string",
-				"description": "The severity ID",
-			},
-			"incident_type_id": map[string]interface{}{
-				"type":        "string",
-				"description": "The incident type ID",
-			},
-			"incident_status_id": map[string]interface{}{
-				"type":        "string",
-				"description": "The incident status ID",
-			},
-			"mode": map[string]interface{}{
-				"type":        "string",
-				"description": "The incident mode (standard, retrospective, tutorial)",
-				"enum":        []string{"standard", "retrospective", "tutorial"},
-				"default":     "standard",
-			},
-			"visibility": map[string]interface{}{
-				"type":        "string",
-				"description": "The incident visibility (public, private)",
-				"enum":        []string{"public", "private"},
-				"default":     "public",
-			},
-			"slack_channel_name_override": map[string]interface{}{
-				"type":        "string",
-				"description": "Override the auto-generated Slack channel name",
-			},
-		},
-		"required":             []interface{}{"name"},
-		"additionalProperties": false,
-	}
-}
-
-func (t *CreateIncidentTool) Execute(args map[string]interface{}) (string, error) {
-	name, ok := args["name"].(string)
-	if !ok {
-		return "", fmt.Errorf("name parameter is required")
-	}
-
-	// Generate idempotency key using timestamp and name
-	idempotencyKey := fmt.Sprintf("mcp-%d-%s", time.Now().UnixNano(), name)
-
-	req := &client.CreateIncidentRequest{
-		IdempotencyKey: idempotencyKey,
-		Name:           name,
-		Mode:           "standard", // Default to standard mode
-		Visibility:     "public",   // Default to public visibility
-	}
-
-	if summary, ok := args["summary"].(string); ok {
-		req.Summary = summary
-	}
-	if statusID, ok := args["incident_status_id"].(string); ok {
-		req.IncidentStatusID = statusID
-	}
-	if severityID, ok := args["severity_id"].(string); ok {
-		req.SeverityID = severityID
-	}
-	if typeID, ok := args["incident_type_id"].(string); ok {
-		req.IncidentTypeID = typeID
-	}
-	if mode, ok := args["mode"].(string); ok {
-		req.Mode = mode
-	}
-	if visibility, ok := args["visibility"].(string); ok {
-		req.Visibility = visibility
-	}
-	if slackOverride, ok := args["slack_channel_name_override"].(string); ok {
-		req.SlackChannelNameOverride = slackOverride
-	}
-
-	// Check if critical fields are missing and provide helpful suggestions
-	var suggestions []string
-
-	if req.SeverityID == "" {
-		suggestions = append(suggestions, "severity_id is not set. Use list_severities to see available options.")
-	}
-
-	if req.IncidentTypeID == "" {
-		suggestions = append(suggestions, "incident_type_id is not set. Use list_incident_types to see available options.")
-	}
-
-	if req.IncidentStatusID == "" {
-		suggestions = append(suggestions, "incident_status_id is not set. Use list_incident_statuses to see available options.")
-	}
-
-	incident, err := t.apiClient.CreateIncident(req)
-	if err != nil {
-		// If the error is related to missing required fields, provide more helpful error message
-		errMsg := err.Error()
-		if len(suggestions) > 0 && (strings.Contains(errMsg, "severity") || strings.Contains(errMsg, "incident_type") || strings.Contains(errMsg, "incident_status")) {
-			return "", fmt.Errorf("%s\n\nSuggestions:\n%s", errMsg, strings.Join(suggestions, "\n"))
-		}
-		return "", err
-	}
-
-	// Include suggestions in successful response if fields were missing
-	result, err := json.MarshalIndent(incident, "", "  ")
-	if err != nil {
-		return "", fmt.Errorf("failed to format response: %w", err)
-	}
-
-	if len(suggestions) > 0 {
-		return fmt.Sprintf("%s\n\nNote: Incident created with defaults. %s", result, strings.Join(suggestions, " ")), nil
-	}
-
-	return string(result), nil
-}
-
-// UpdateIncidentTool updates an existing incident
-type UpdateIncidentTool struct {
-	apiClient *client.Client
-}
-
-func NewUpdateIncidentTool(c *client.Client) *UpdateIncidentTool {
-	return &UpdateIncidentTool{apiClient: c}
-}
-
-func (t *UpdateIncidentTool) Name() string {
-	return "update_incident"
-}
-
-func (t *UpdateIncidentTool) Description() string {
-	return "Update an existing incident"
-}
-
-func (t *UpdateIncidentTool) InputSchema() map[string]interface{} {
-	return map[string]interface{}{
-		"type": "object",
-		"properties": map[string]interface{}{
-			"incident_id": map[string]interface{}{
-				"type":        "string",
-				"description": "The incident ID to update",
-			},
-			"name": map[string]interface{}{
-				"type":        "string",
-				"description": "Update the incident name",
-			},
-			"summary": map[string]interface{}{
-				"type":        "string",
-				"description": "Update the incident summary",
-			},
-			"incident_status_id": map[string]interface{}{
-				"type":        "string",
-				"description": "Update the incident status ID",
-			},
-			"severity_id": map[string]interface{}{
-				"type":        "string",
-				"description": "Update the severity ID",
-			},
-		},
-		"required":             []interface{}{"incident_id"},
-		"additionalProperties": false,
-	}
-}
-
-func (t *UpdateIncidentTool) Execute(args map[string]interface{}) (string, error) {
-
-	id, ok := args["incident_id"].(string)
-	if !ok || id == "" {
-		argDetails := make(map[string]interface{})
-		for key, value := range args {
-			argDetails[key] = value
-		}
-		return "", fmt.Errorf("incident_id parameter is required and must be a non-empty string. Received parameters: %+v", argDetails)
-	}
-
-	req := &client.UpdateIncidentRequest{}
-	hasUpdate := false
-
-	if name, ok := args["name"].(string); ok {
-		req.Name = name
-		hasUpdate = true
-	}
-	if summary, ok := args["summary"].(string); ok {
-		req.Summary = summary
-		hasUpdate = true
-	}
-	if statusID, ok := args["incident_status_id"].(string); ok {
-		req.IncidentStatusID = statusID
-		hasUpdate = true
-	}
-	if severityID, ok := args["severity_id"].(string); ok {
-		req.SeverityID = severityID
-		hasUpdate = true
-	}
-
-	if !hasUpdate {
-		return "", fmt.Errorf("at least one field to update must be provided")
-	}
-
-	incident, err := t.apiClient.UpdateIncident(id, req)
 	if err != nil {
 		return "", err
 	}

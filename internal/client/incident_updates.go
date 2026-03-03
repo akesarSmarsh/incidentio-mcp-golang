@@ -40,50 +40,52 @@ func (c *Client) ListIncidentUpdates(opts *ListIncidentUpdatesOptions) (*ListInc
 	return &response, nil
 }
 
-// GetIncidentUpdate retrieves a specific incident update by ID
+// GetIncidentUpdate retrieves a specific incident update by ID.
+// Note: The incident.io API does not have a GET-by-ID endpoint for incident updates.
+// This implementation fetches updates via the list endpoint and filters by ID.
 func (c *Client) GetIncidentUpdate(id string) (*IncidentUpdate, error) {
-	respBody, err := c.doRequest("GET", fmt.Sprintf("/incident_updates/%s", id), nil, nil)
+	// Fetch a page of updates (the target update is likely recent)
+	params := url.Values{}
+	params.Set("page_size", "250")
+
+	respBody, err := c.doRequest("GET", "/incident_updates", params, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	var response struct {
-		IncidentUpdate IncidentUpdate `json:"incident_update"`
-	}
+	var response ListIncidentUpdatesResponse
 	if err := json.Unmarshal(respBody, &response); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
 	}
 
-	return &response.IncidentUpdate, nil
-}
-
-// CreateIncidentUpdate creates a new incident update
-func (c *Client) CreateIncidentUpdate(req *CreateIncidentUpdateRequest) (*IncidentUpdate, error) {
-	// Validate required fields
-	if req.IncidentID == "" {
-		return nil, fmt.Errorf("incident_id is required")
-	}
-	if req.Message == "" {
-		return nil, fmt.Errorf("message is required")
+	for i := range response.IncidentUpdates {
+		if response.IncidentUpdates[i].ID == id {
+			return &response.IncidentUpdates[i], nil
+		}
 	}
 
-	respBody, err := c.doRequest("POST", "/incident_updates", nil, req)
-	if err != nil {
-		return nil, err
+	// If not found in first page, paginate through remaining pages
+	after := response.PaginationMeta.After
+	for after != "" {
+		params.Set("after", after)
+		respBody, err = c.doRequest("GET", "/incident_updates", params, nil)
+		if err != nil {
+			return nil, err
+		}
+
+		var pageResponse ListIncidentUpdatesResponse
+		if err := json.Unmarshal(respBody, &pageResponse); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal response: %w", err)
+		}
+
+		for i := range pageResponse.IncidentUpdates {
+			if pageResponse.IncidentUpdates[i].ID == id {
+				return &pageResponse.IncidentUpdates[i], nil
+			}
+		}
+
+		after = pageResponse.PaginationMeta.After
 	}
 
-	var response struct {
-		IncidentUpdate IncidentUpdate `json:"incident_update"`
-	}
-	if err := json.Unmarshal(respBody, &response); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
-	}
-
-	return &response.IncidentUpdate, nil
-}
-
-// DeleteIncidentUpdate deletes an incident update
-func (c *Client) DeleteIncidentUpdate(id string) error {
-	_, err := c.doRequest("DELETE", fmt.Sprintf("/incident_updates/%s", id), nil, nil)
-	return err
+	return nil, fmt.Errorf("incident update with ID %s not found", id)
 }

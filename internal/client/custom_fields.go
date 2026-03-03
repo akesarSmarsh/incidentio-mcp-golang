@@ -38,46 +38,6 @@ func (c *Client) GetCustomField(id string) (*CustomField, error) {
 	return &response.CustomField, nil
 }
 
-// CreateCustomField creates a new custom field
-func (c *Client) CreateCustomField(req *CreateCustomFieldRequest) (*CustomField, error) {
-	respBody, err := c.doRequest("POST", "/custom_fields", nil, req)
-	if err != nil {
-		return nil, err
-	}
-
-	var response struct {
-		CustomField CustomField `json:"custom_field"`
-	}
-	if err := json.Unmarshal(respBody, &response); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
-	}
-
-	return &response.CustomField, nil
-}
-
-// UpdateCustomField updates an existing custom field
-func (c *Client) UpdateCustomField(id string, req *UpdateCustomFieldRequest) (*CustomField, error) {
-	respBody, err := c.doRequest("PUT", fmt.Sprintf("/custom_fields/%s", id), nil, req)
-	if err != nil {
-		return nil, err
-	}
-
-	var response struct {
-		CustomField CustomField `json:"custom_field"`
-	}
-	if err := json.Unmarshal(respBody, &response); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
-	}
-
-	return &response.CustomField, nil
-}
-
-// DeleteCustomField deletes a custom field
-func (c *Client) DeleteCustomField(id string) error {
-	_, err := c.doRequest("DELETE", fmt.Sprintf("/custom_fields/%s", id), nil, nil)
-	return err
-}
-
 // ListCustomFieldOptions retrieves all options for custom fields
 func (c *Client) ListCustomFieldOptions() ([]CustomFieldOption, error) {
 	respBody, err := c.doRequest("GET", "/custom_field_options", nil, nil)
@@ -110,46 +70,6 @@ func (c *Client) GetCustomFieldOption(id string) (*CustomFieldOption, error) {
 	}
 
 	return &response.CustomFieldOption, nil
-}
-
-// CreateCustomFieldOption creates a new custom field option
-func (c *Client) CreateCustomFieldOption(req *CreateCustomFieldOptionRequest) (*CustomFieldOption, error) {
-	respBody, err := c.doRequest("POST", "/custom_field_options", nil, req)
-	if err != nil {
-		return nil, err
-	}
-
-	var response struct {
-		CustomFieldOption CustomFieldOption `json:"custom_field_option"`
-	}
-	if err := json.Unmarshal(respBody, &response); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
-	}
-
-	return &response.CustomFieldOption, nil
-}
-
-// UpdateCustomFieldOption updates an existing custom field option
-func (c *Client) UpdateCustomFieldOption(id string, req *UpdateCustomFieldOptionRequest) (*CustomFieldOption, error) {
-	respBody, err := c.doRequest("PUT", fmt.Sprintf("/custom_field_options/%s", id), nil, req)
-	if err != nil {
-		return nil, err
-	}
-
-	var response struct {
-		CustomFieldOption CustomFieldOption `json:"custom_field_option"`
-	}
-	if err := json.Unmarshal(respBody, &response); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
-	}
-
-	return &response.CustomFieldOption, nil
-}
-
-// DeleteCustomFieldOption deletes a custom field option
-func (c *Client) DeleteCustomFieldOption(id string) error {
-	_, err := c.doRequest("DELETE", fmt.Sprintf("/custom_field_options/%s", id), nil, nil)
-	return err
 }
 
 // SearchCustomFields searches for custom fields by name or field type

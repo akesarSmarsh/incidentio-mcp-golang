@@ -72,28 +72,6 @@ func (c *Client) ListCatalogEntries(opts ListCatalogEntriesOptions) (*ListCatalo
 	return &response, nil
 }
 
-// UpdateCatalogEntry updates a catalog entry by ID
-func (c *Client) UpdateCatalogEntry(id string, req UpdateCatalogEntryRequest) (*CatalogEntry, error) {
-	// Catalog API uses V3, need to temporarily change the base URL
-	originalBaseURL := c.BaseURL()
-	c.SetBaseURL("https://api.incident.io/v3")
-	defer func() { c.SetBaseURL(originalBaseURL) }()
-
-	respBody, err := c.doRequest("PUT", fmt.Sprintf("/catalog_entries/%s", id), nil, req)
-	if err != nil {
-		return nil, err
-	}
-
-	var response struct {
-		CatalogEntry CatalogEntry `json:"catalog_entry"`
-	}
-	if err := json.Unmarshal(respBody, &response); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
-	}
-
-	return &response.CatalogEntry, nil
-}
-
 // GetCatalogEntry retrieves a specific catalog entry by ID
 func (c *Client) GetCatalogEntry(id string) (*CatalogEntry, error) {
 	// Catalog API uses V3, need to temporarily change the base URL

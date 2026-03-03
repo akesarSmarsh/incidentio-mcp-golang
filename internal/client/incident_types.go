@@ -14,6 +14,11 @@ type ListIncidentTypesResponse struct {
 
 // ListIncidentTypes returns all incident types
 func (c *Client) ListIncidentTypes() (*ListIncidentTypesResponse, error) {
+	// Note: Incident types are under V1 API, not V2
+	originalBaseURL := c.BaseURL()
+	c.SetBaseURL("https://api.incident.io/v1")
+	defer func() { c.SetBaseURL(originalBaseURL) }()
+
 	respBody, err := c.doRequest("GET", "/incident_types", nil, nil)
 	if err != nil {
 		return nil, err

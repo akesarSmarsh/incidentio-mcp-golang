@@ -216,62 +216,6 @@ type AlertEvent struct {
 	UpdatedAt        time.Time              `json:"updated_at"`
 }
 
-// RetrospectiveIncidentOptionsRequest represents retrospective options for an incident
-type RetrospectiveIncidentOptionsRequest struct {
-	ExternalID            int64  `json:"external_id,omitempty"`
-	PostmortemDocumentURL string `json:"postmortem_document_url,omitempty"`
-	SlackChannelID        string `json:"slack_channel_id,omitempty"`
-}
-
-// CreateIncidentRequest represents a request to create an incident
-type CreateIncidentRequest struct {
-	IdempotencyKey               string                               `json:"idempotency_key"`
-	Name                         string                               `json:"name"`
-	Summary                      string                               `json:"summary,omitempty"`
-	IncidentStatusID             string                               `json:"incident_status_id,omitempty"`
-	SeverityID                   string                               `json:"severity_id,omitempty"`
-	IncidentTypeID               string                               `json:"incident_type_id,omitempty"`
-	Mode                         string                               `json:"mode,omitempty"`
-	Visibility                   string                               `json:"visibility,omitempty"`
-	CustomFieldEntries           []CustomFieldEntryRequest            `json:"custom_field_entries,omitempty"`
-	IncidentRoleAssignments      []CreateRoleAssignmentRequest        `json:"incident_role_assignments,omitempty"`
-	IncidentTimestampValues      []IncidentTimestampValueRequest      `json:"incident_timestamp_values,omitempty"`
-	SlackChannelNameOverride     string                               `json:"slack_channel_name_override,omitempty"`
-	SlackTeamID                  string                               `json:"slack_team_id,omitempty"`
-	RetrospectiveIncidentOptions *RetrospectiveIncidentOptionsRequest `json:"retrospective_incident_options,omitempty"`
-}
-
-// CustomFieldEntryRequest represents a custom field entry in create/update requests
-type CustomFieldEntryRequest struct {
-	CustomFieldID string        `json:"custom_field_id"`
-	Values        []interface{} `json:"values"`
-}
-
-// CreateRoleAssignmentRequest represents a role assignment in create request
-type CreateRoleAssignmentRequest struct {
-	IncidentRoleID string `json:"incident_role_id"`
-	UserID         string `json:"user_id"`
-}
-
-// IncidentTimestampValueRequest represents a timestamp value update request
-type IncidentTimestampValueRequest struct {
-	IncidentTimestampID string `json:"incident_timestamp_id"`
-	Value               string `json:"value"`
-}
-
-// UpdateIncidentRequest represents a request to update an incident
-type UpdateIncidentRequest struct {
-	Name                     string                          `json:"name,omitempty"`
-	Summary                  string                          `json:"summary,omitempty"`
-	IncidentStatusID         string                          `json:"incident_status_id,omitempty"`
-	SeverityID               string                          `json:"severity_id,omitempty"`
-	CallURL                  string                          `json:"call_url,omitempty"`
-	SlackChannelNameOverride string                          `json:"slack_channel_name_override,omitempty"`
-	CustomFieldEntries       []CustomFieldEntryRequest       `json:"custom_field_entries,omitempty"`
-	IncidentRoleAssignments  []CreateRoleAssignmentRequest   `json:"incident_role_assignments,omitempty"`
-	IncidentTimestampValues  []IncidentTimestampValueRequest `json:"incident_timestamp_values,omitempty"`
-}
-
 // IncidentUpdate represents a status update posted to an incident
 type IncidentUpdate struct {
 	ID         string    `json:"id"`
@@ -280,12 +224,6 @@ type IncidentUpdate struct {
 	CreatedAt  time.Time `json:"created_at"`
 	UpdatedAt  time.Time `json:"updated_at"`
 	Author     *User     `json:"author,omitempty"`
-}
-
-// CreateIncidentUpdateRequest represents a request to create an incident update
-type CreateIncidentUpdateRequest struct {
-	IncidentID string `json:"incident_id"`
-	Message    string `json:"message"`
 }
 
 // ListIncidentUpdatesOptions represents options for listing incident updates
@@ -368,16 +306,6 @@ type ListCatalogEntriesResponse struct {
 	ListResponse
 }
 
-// UpdateCatalogEntryRequest represents a request to update a catalog entry
-type UpdateCatalogEntryRequest struct {
-	Name             string                                `json:"name,omitempty"`
-	Aliases          []string                              `json:"aliases,omitempty"`
-	AttributeValues  map[string]CatalogEntryAttributeValue `json:"attribute_values,omitempty"`
-	ExternalID       string                                `json:"external_id,omitempty"`
-	Rank             int                                   `json:"rank,omitempty"`
-	UpdateAttributes []string                              `json:"update_attributes,omitempty"`
-}
-
 // CustomField represents a custom field in incident.io (V2)
 type CustomField struct {
 	ID                     string              `json:"id"`
@@ -404,49 +332,10 @@ type CustomFieldOption struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-// CreateCustomFieldRequest represents a request to create a custom field
-type CreateCustomFieldRequest struct {
-	Name                   string   `json:"name"`
-	Description            string   `json:"description"`
-	FieldType              string   `json:"field_type"`
-	Required               string   `json:"required"` // "never", "always", "before_closure"
-	ShowBeforeClosure      bool     `json:"show_before_closure"`
-	ShowBeforeCreation     bool     `json:"show_before_creation"`
-	ShowBeforeUpdate       bool     `json:"show_before_update"`
-	ShowInAnnouncementPost *bool    `json:"show_in_announcement_post,omitempty"`
-	CatalogTypeID          string   `json:"catalog_type_id,omitempty"` // For catalog fields
-	Options                []string `json:"options,omitempty"`         // For select fields
-}
-
-// UpdateCustomFieldRequest represents a request to update a custom field
-type UpdateCustomFieldRequest struct {
-	Name                   string   `json:"name,omitempty"`
-	Description            string   `json:"description,omitempty"`
-	Required               string   `json:"required,omitempty"`
-	ShowBeforeClosure      *bool    `json:"show_before_closure,omitempty"`
-	ShowBeforeCreation     *bool    `json:"show_before_creation,omitempty"`
-	ShowBeforeUpdate       *bool    `json:"show_before_update,omitempty"`
-	ShowInAnnouncementPost *bool    `json:"show_in_announcement_post,omitempty"`
-	Options                []string `json:"options,omitempty"`
-}
-
 // ListCustomFieldsResponse represents the response from listing custom fields
 type ListCustomFieldsResponse struct {
 	CustomFields []CustomField `json:"custom_fields"`
 	ListResponse
-}
-
-// CreateCustomFieldOptionRequest represents a request to create a custom field option (V1)
-type CreateCustomFieldOptionRequest struct {
-	CustomFieldID string `json:"custom_field_id"`
-	Value         string `json:"value"`
-	SortKey       int    `json:"sort_key,omitempty"`
-}
-
-// UpdateCustomFieldOptionRequest represents a request to update a custom field option (V1)
-type UpdateCustomFieldOptionRequest struct {
-	Value   string `json:"value,omitempty"`
-	SortKey int    `json:"sort_key,omitempty"`
 }
 
 // FollowUpPriority represents a follow-up priority
@@ -492,4 +381,68 @@ type FollowUp struct {
 	CreatedAt              time.Time               `json:"created_at"`
 	UpdatedAt              time.Time               `json:"updated_at"`
 	CompletedAt            *time.Time              `json:"completed_at,omitempty"`
+}
+
+// Schedule represents an on-call schedule
+type Schedule struct {
+	ID            string          `json:"id"`
+	Name          string          `json:"name"`
+	Timezone      string          `json:"timezone"`
+	Config        ScheduleConfig  `json:"config"`
+	CurrentShifts []ScheduleShift `json:"current_shifts,omitempty"`
+	CreatedAt     time.Time       `json:"created_at"`
+	UpdatedAt     time.Time       `json:"updated_at"`
+}
+
+// ScheduleShift represents a currently active shift on a schedule
+type ScheduleShift struct {
+	RotationID  string    `json:"rotation_id"`
+	User        User      `json:"user"`
+	StartAt     time.Time `json:"start_at"`
+	EndAt       time.Time `json:"end_at"`
+	Fingerprint string    `json:"fingerprint"`
+}
+
+// ScheduleConfig represents the configuration of a schedule
+type ScheduleConfig struct {
+	Type string `json:"type"`
+}
+
+// ScheduleEntry represents an entry in a schedule (who is on-call when)
+type ScheduleEntry struct {
+	EntryID     string    `json:"entry_id"`
+	Fingerprint string    `json:"fingerprint"`
+	LayerID     string    `json:"layer_id"`
+	RotationID  string    `json:"rotation_id"`
+	User        User      `json:"user"`
+	StartAt     time.Time `json:"start_at"`
+	EndAt       time.Time `json:"end_at"`
+}
+
+// ScheduleLayer represents a layer in a schedule
+type ScheduleLayer struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+// SchedulesResponse represents the response from listing schedules
+type SchedulesResponse struct {
+	Schedules      []Schedule `json:"schedules"`
+	PaginationMeta struct {
+		After            string `json:"after,omitempty"`
+		PageSize         int    `json:"page_size"`
+		TotalRecordCount int    `json:"total_record_count"`
+	} `json:"pagination_meta"`
+}
+
+// ScheduleEntriesResponse represents the response from listing schedule entries
+// The API returns three arrays: final, overrides, and scheduled
+type ScheduleEntriesResponse struct {
+	Final          []ScheduleEntry `json:"final"`
+	Overrides      []ScheduleEntry `json:"overrides"`
+	Scheduled      []ScheduleEntry `json:"scheduled"`
+	PaginationMeta struct {
+		After    string `json:"after,omitempty"`
+		AfterURL string `json:"after_url,omitempty"`
+	} `json:"pagination_meta"`
 }

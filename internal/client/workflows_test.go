@@ -165,104 +165,13 @@ func TestGetWorkflow(t *testing.T) {
 	}
 }
 
-func TestUpdateWorkflow(t *testing.T) {
-	tests := []struct {
-		name           string
-		workflowID     string
-		request        *UpdateWorkflowRequest
-		mockResponse   string
-		mockStatusCode int
-		wantError      bool
-	}{
-		{
-			name:       "successful update workflow",
-			workflowID: "wf_123",
-			request: &UpdateWorkflowRequest{
-				Name:    "Updated Workflow",
-				Enabled: boolPtr(false),
-			},
-			mockResponse: `{
-				"workflow": {
-					"id": "wf_123",
-					"name": "Updated Workflow",
-					"trigger": {
-						"name": "incident.created",
-						"label": "Incident created"
-					},
-					"enabled": false,
-					"state": "disabled",
-					"created_at": "2024-01-01T00:00:00Z",
-					"updated_at": "2024-01-02T00:00:00Z"
-				}
-			}`,
-			mockStatusCode: http.StatusOK,
-			wantError:      false,
-		},
-		{
-			name:       "enable workflow",
-			workflowID: "wf_123",
-			request: &UpdateWorkflowRequest{
-				Enabled: boolPtr(true),
-			},
-			mockResponse: `{
-				"workflow": {
-					"id": "wf_123",
-					"name": "Test Workflow",
-					"trigger": {
-						"name": "incident.created",
-						"label": "Incident created"
-					},
-					"enabled": true,
-					"state": "active",
-					"created_at": "2024-01-01T00:00:00Z",
-					"updated_at": "2024-01-02T00:00:00Z"
-				}
-			}`,
-			mockStatusCode: http.StatusOK,
-			wantError:      false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			mockClient := &MockHTTPClient{
-				DoFunc: func(req *http.Request) (*http.Response, error) {
-					assertEqual(t, "PATCH", req.Method)
-					assertEqual(t, "/workflows/"+tt.workflowID, req.URL.Path)
-					return mockResponse(tt.mockStatusCode, tt.mockResponse), nil
-				},
-			}
-
-			client := NewTestClient(mockClient)
-			workflow, err := client.UpdateWorkflow(tt.workflowID, tt.request)
-
-			if tt.wantError {
-				assertError(t, err)
-				return
-			}
-
-			assertNoError(t, err)
-			assertEqual(t, tt.workflowID, workflow.ID)
-
-			// Verify updates were applied
-			if tt.request.Name != "" {
-				assertEqual(t, tt.request.Name, workflow.Name)
-			}
-			if tt.request.Enabled != nil {
-				if workflow.Enabled != *tt.request.Enabled {
-					t.Errorf("expected enabled to be %v, got %v", *tt.request.Enabled, workflow.Enabled)
-				}
-			}
-		})
-	}
-}
-
 // TestWorkflowTriggerObjectParsing is a regression test for bugs where:
 // 1. workflow.trigger was incorrectly typed as string instead of an object
 // 2. workflow.state was incorrectly typed as map[string]interface{} instead of string
 // The incident.io API returns:
 //   - trigger as: {"name": "...", "label": "..."}
 //   - state as: "active" | "disabled" | etc.
+//
 // See: https://github.com/incident-io/incidentio-mcp-golang/pull/20
 func TestWorkflowTriggerObjectParsing(t *testing.T) {
 	// This test uses a real-world API response structure to ensure
@@ -326,9 +235,4 @@ func TestWorkflowTriggerObjectParsing(t *testing.T) {
 	assertEqual(t, "incident.created", wf2.Trigger.Name)
 	assertEqual(t, "An incident is created", wf2.Trigger.Label)
 	assertEqual(t, "disabled", wf2.State)
-}
-
-// Helper function to create a bool pointer
-func boolPtr(b bool) *bool {
-	return &b
 }

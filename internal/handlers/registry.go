@@ -30,10 +30,6 @@ func (r *ToolRegistry) GetTools() map[string]Handler {
 func (r *ToolRegistry) RegisterIncidentTools(c *client.Client) {
 	r.RegisterTool("list_incidents", NewListIncidentsTool(c))
 	r.RegisterTool("get_incident", NewGetIncidentTool(c))
-	r.RegisterTool("create_incident", NewCreateIncidentTool(c))
-	r.RegisterTool("create_incident_smart", NewCreateIncidentEnhancedTool(c))
-	r.RegisterTool("update_incident", NewUpdateIncidentTool(c))
-	r.RegisterTool("close_incident", NewCloseIncidentTool(c))
 	r.RegisterTool("list_incident_statuses", NewListIncidentStatusesTool(c))
 	r.RegisterTool("list_incident_types", NewListIncidentTypesTool(c))
 }
@@ -42,8 +38,6 @@ func (r *ToolRegistry) RegisterIncidentTools(c *client.Client) {
 func (r *ToolRegistry) RegisterIncidentUpdateTools(c *client.Client) {
 	r.RegisterTool("list_incident_updates", NewListIncidentUpdatesTool(c))
 	r.RegisterTool("get_incident_update", NewGetIncidentUpdateTool(c))
-	r.RegisterTool("create_incident_update", NewCreateIncidentUpdateTool(c))
-	r.RegisterTool("delete_incident_update", NewDeleteIncidentUpdateTool(c))
 }
 
 // RegisterFollowUpTools registers all follow-up tools
@@ -69,35 +63,29 @@ func (r *ToolRegistry) RegisterActionTools(c *client.Client) {
 func (r *ToolRegistry) RegisterRoleTools(c *client.Client) {
 	r.RegisterTool("list_available_incident_roles", NewListIncidentRolesTool(c))
 	r.RegisterTool("list_users", NewListUsersTool(c))
-	r.RegisterTool("assign_incident_role", NewAssignIncidentRoleTool(c))
 }
 
 // RegisterWorkflowTools registers all workflow tools
 func (r *ToolRegistry) RegisterWorkflowTools(c *client.Client) {
 	r.RegisterTool("list_workflows", NewListWorkflowsTool(c))
 	r.RegisterTool("get_workflow", NewGetWorkflowTool(c))
-	r.RegisterTool("update_workflow", NewUpdateWorkflowTool(c))
 }
 
 // RegisterAlertRouteTools registers all alert route tools
 func (r *ToolRegistry) RegisterAlertRouteTools(c *client.Client) {
 	r.RegisterTool("list_alert_routes", NewListAlertRoutesTool(c))
 	r.RegisterTool("get_alert_route", NewGetAlertRouteTool(c))
-	r.RegisterTool("create_alert_route", NewCreateAlertRouteTool(c))
-	r.RegisterTool("update_alert_route", NewUpdateAlertRouteTool(c))
 }
 
 // RegisterAlertSourceTools registers all alert source tools
 func (r *ToolRegistry) RegisterAlertSourceTools(c *client.Client) {
 	r.RegisterTool("list_alert_sources", NewListAlertSourcesTool(c))
-	r.RegisterTool("create_alert_event", NewCreateAlertEventTool(c))
 }
 
 // RegisterCatalogTools registers all catalog tools
 func (r *ToolRegistry) RegisterCatalogTools(c *client.Client) {
 	r.RegisterTool("list_catalog_types", NewListCatalogTypesTool(c))
 	r.RegisterTool("list_catalog_entries", NewListCatalogEntriesTool(c))
-	r.RegisterTool("update_catalog_entry", NewUpdateCatalogEntryTool(c))
 }
 
 // RegisterCustomFieldTools registers all custom field tools
@@ -105,17 +93,21 @@ func (r *ToolRegistry) RegisterCustomFieldTools(c *client.Client) {
 	r.RegisterTool("list_custom_fields", NewListCustomFieldsTool(c))
 	r.RegisterTool("get_custom_field", NewGetCustomFieldTool(c))
 	r.RegisterTool("search_custom_fields", NewSearchCustomFieldsTool(c))
-	r.RegisterTool("create_custom_field", NewCreateCustomFieldTool(c))
-	r.RegisterTool("update_custom_field", NewUpdateCustomFieldTool(c))
-	r.RegisterTool("delete_custom_field", NewDeleteCustomFieldTool(c))
 	r.RegisterTool("list_custom_field_options", NewListCustomFieldOptionsTool(c))
-	r.RegisterTool("create_custom_field_option", NewCreateCustomFieldOptionTool(c))
 }
 
 // RegisterSeverityTools registers all severity tools
 func (r *ToolRegistry) RegisterSeverityTools(c *client.Client) {
 	r.RegisterTool("list_severities", NewListSeveritiesTool(c))
 	r.RegisterTool("get_severity", NewGetSeverityTool(c))
+}
+
+// RegisterScheduleTools registers all schedule tools
+func (r *ToolRegistry) RegisterScheduleTools(c *client.Client) {
+	r.RegisterTool("list_schedules", NewListSchedulesTool(c))
+	r.RegisterTool("get_schedule", NewGetScheduleTool(c))
+	r.RegisterTool("list_schedule_entries", NewListScheduleEntriesTool(c))
+	r.RegisterTool("get_current_on_call", NewGetCurrentOnCallTool(c))
 }
 
 // RegisterAllTools registers all available tools
@@ -132,4 +124,5 @@ func (r *ToolRegistry) RegisterAllTools(c *client.Client) {
 	r.RegisterCatalogTools(c)
 	r.RegisterCustomFieldTools(c)
 	r.RegisterSeverityTools(c)
+	r.RegisterScheduleTools(c)
 }
