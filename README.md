@@ -1,200 +1,106 @@
-# incident.io MCP Server
+# incident.io MCP Server (Read-Only)
 
-[![CI](https://github.com/incident-io/incidentio-mcp-golang/actions/workflows/ci.yml/badge.svg)](https://github.com/incident-io/incidentio-mcp-golang/actions/workflows/ci.yml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/incident-io/incidentio-mcp-golang)](https://goreportcard.com/report/github.com/incident-io/incidentio-mcp-golang)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Go Version](https://img.shields.io/badge/Go-1.21+-blue.svg)](https://go.dev/dl/)
+A **read-only** MCP server for incident.io that lets AI assistants (Claude, Windsurf, etc.) query incident data safely.
 
-A GoLang implementation of an MCP (Model Context Protocol) server for incident.io, providing comprehensive tools to interact with the incident.io API. Built following industry-standard Go project layout patterns.
+> ⚠️ **Read-Only**: This server can only read data - no create, update, or delete operations.
 
-> ⚠️ **Fair warning!** ⚠️  
-> This repository is largely vibe-coded and unsupported. Built by our CMO and an enterprising Solutions Engineer with questionable coding practices but undeniable enthusiasm. Use at your own risk! 🚀
+## � Installation
 
-## 🚀 Quick Start
+### Step 1: Get API Key
+1. Go to incident.io → **Settings** → **API Keys**
+2. Create a new API key (starts with `incio_`)
 
+### Step 2: Install
 ```bash
-# Clone the repository
+# Clone the repo
 git clone https://github.com/incident-io/incidentio-mcp-golang.git
 cd incidentio-mcp-golang
 
 # Set up environment
 cp .env.example .env
-# Edit .env and add your incident.io API key
+# Edit .env and add: INCIDENT_IO_API_KEY=your-key-here
 
-# Build and run
-go build -o bin/mcp-server ./cmd/mcp-server
-./start-mcp-server.sh
+# Build
+go build -o incidentio-mcp ./cmd/mcp-server
+
+# Run
+./incidentio-mcp
 ```
 
-## 📋 Features
+### Step 3: Connect to Windsurf/Claude
 
-- ✅ Complete incident.io V2 API coverage including Custom Fields
-- ✅ Workflow automation and management
-- ✅ Alert routing and event handling
-- ✅ Comprehensive test suite
-- ✅ MCP protocol compliant
-- ✅ Industry-standard Go project structure
-- ✅ Clean, layered architecture (client → handlers → server)
-
-## 🤖 Using with Claude
-
-Add to your Claude Desktop configuration:
-
-**macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`  
-**Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
-
+**Windsurf**: Add to `~/.codeium/windsurf/mcp_config.json`:
 ```json
 {
-  "mcpServers": {
-    "incidentio": {
-      "command": "/path/to/incidentio-mcp-golang/start-mcp-server.sh",
-      "env": {
-        "INCIDENT_IO_API_KEY": "your-api-key"
-      }
+  "incidentio-local": {
+    "command": "/path/to/incidentio-mcp",
+    "env": {
+      "INCIDENT_IO_API_KEY": "your-key"
     }
   }
 }
 ```
-Or, if you'd prefer to run everything in Docker:
 
-```json
-{
-    "mcpServers": {
-      "incidentio": {
-        "command": "docker-compose",
-        "args": ["-f", "/path/to/docker-compose.yml", "run", "--rm", "-T", "mcp-server"],
-        "env": {
-          "INCIDENT_IO_API_KEY": "your-api-key"
-        }
-      }
-    }
-}
-```
+## 🛠️ Available Tools
 
+### Incident Management (Read-Only)
 
-## Available Tools
+- `list_incidents` - List incidents with optional filters (severity, status, date range, custom fields)
+- `get_incident` - Get details of a specific incident by ID or reference (e.g., INC-123)
+- `list_incident_statuses` - List all available incident statuses
+- `list_incident_types` - List available incident types
 
-### Incident Management
+### Alerts & Follow-ups
+- `list_alerts` - List alerts with filters
+- `get_alert` - Get alert details
+- `list_follow_ups` - List follow-up tasks
+- `get_follow_up` - Get follow-up details
 
-- `list_incidents` - List incidents with optional filters
-- `get_incident` - Get details of a specific incident
-- `create_incident` - Create a new incident
-- `update_incident` - Update an existing incident
-- `close_incident` - Close an incident with proper workflow
-- `create_incident_update` - Post status updates to incidents
+### On-Call & Schedules
+- `list_schedules` - List on-call schedules
+- `get_schedule` - Get schedule details
+- `get_current_on_call` - Get current on-call person
 
-### Follow-up Management
-
-- `list_follow_ups` - List follow-ups with optional filters
-- `get_follow_up` - Get details of a specific follow-up
-
-### Alert Management
-
-- `list_alerts` - List alerts with optional filters
-- `get_alert` - Get details of a specific alert
-- `list_incident_alerts` - List connections between incidents and alerts
-- `create_alert_event` - Create an alert event
-- `list_alert_routes` - List and manage alert routes
-
-### Workflow & Automation
-
-- `list_workflows` - List available workflows
-- `get_workflow` - Get workflow details
-- `update_workflow` - Update workflow configuration
-
-### Team & Roles
-
-- `list_users` - List organization users
-- `list_available_incident_roles` - List available incident roles
-- `assign_incident_role` - Assign roles to users
-
-### Catalog Management
-
-- `list_catalog_types` - List available catalog types
+### Custom Fields & Catalogs
+- `list_custom_fields` - List custom fields
+- `search_custom_fields` - Search custom fields
+- `list_catalog_types` - List catalog types
 - `list_catalog_entries` - List catalog entries
-- `update_catalog_entry` - Update catalog entries
 
-### Custom Fields
+### Severities & Statuses
+- `list_severities` - List severity levels
+- `list_incident_statuses` - List incident statuses
 
-- `list_custom_fields` - List all custom fields
-- `get_custom_field` - Get details of a specific custom field
-- `search_custom_fields` - Search for custom fields by name or type
-- `create_custom_field` - Create a new custom field
-- `update_custom_field` - Update custom field configuration
-- `delete_custom_field` - Delete a custom field
-- `list_custom_field_options` - List all custom field options
-- `create_custom_field_option` - Add a new option to a select field
+### Other Tools
+- `list_users` - List organization users
+- `list_workflows` - List workflows
+- `list_actions` - List actions
 
-## 📝 Example Usage
+## � Example Queries
 
-```bash
-# Through Claude or another MCP client
-"Show me all active incidents"
-"Create a new incident called 'Database performance degradation' with severity high"
-"List alerts for incident INC-123"
-"Assign John Doe as incident lead for INC-456"
-"Update the Payments service catalog entry with new team information"
-"Show me all custom fields configured in incident.io"
-"Search for custom fields related to 'priority'"
-"Create a new custom field called 'Root Cause' with type single_select"
-```
+Ask your AI assistant (Claude/Windsurf):
 
-## 📚 Documentation
-
-- **[Development Guide](docs/DEVELOPMENT.md)** - Setup, testing, and contribution guidelines
-- **[Configuration Guide](docs/CONFIGURATION.md)** - Environment variables and deployment options
-- **[Contributing Guide](docs/CONTRIBUTING.md)** - How to contribute to the project
-- **[Testing Guide](docs/TESTING.md)** - Testing documentation and best practices
-- **[Deployment Guide](docs/DEPLOYMENT.md)** - Deployment instructions and considerations
-- **[Code of Conduct](docs/CODE_OF_CONDUCT.md)** - Community guidelines and standards
-
-## 🏗️ Project Structure
-
-This project follows industry-standard Go project layout:
-
-```
-├── cmd/mcp-server/       # Main application entry point
-├── internal/
-│   ├── client/           # incident.io API client (HTTP layer)
-│   ├── handlers/         # MCP protocol handlers (adapter layer)
-│   └── server/           # MCP server orchestration
-├── pkg/mcp/              # Public MCP types
-└── docs/                 # Documentation
-```
-
-**Design Philosophy:**
-- **`internal/client`**: Pure HTTP API client for incident.io - reusable, testable
-- **`internal/handlers`**: MCP protocol adapters - converts MCP requests to API calls
-- **`internal/server`**: MCP server that orchestrates handlers and manages the protocol
+- "Show me all active incidents"
+- "List P1 incidents from the last 30 days"
+- "Who is on-call for the indexing team?"
+- "Get details for incident INC-123"
+- "Show me all outstanding follow-ups"
+- "List alerts created in the last 24 hours"
 
 ## 🔧 Troubleshooting
 
-### Common Issues
+| Issue | Solution |
+|-------|----------|
+| **API key error** | Verify key starts with `incio_` |
+| **Go not found** | Install Go 1.21+ from [go.dev](https://go.dev/dl/) |
+| **Build fails** | Run `go mod tidy` first |
+| **404 errors** | Check incident ID is valid |
 
-- **404 errors**: Ensure incident IDs are valid and exist in your instance
-- **Authentication errors**: Verify your API key is correct and has proper permissions
-- **Parameter errors**: All incident-related tools use `incident_id` as the parameter name
+## 📚 More Info
 
-### Debug Mode
+- **30+ read-only tools** for incident.io
+- **Complete API coverage** for incidents, alerts, schedules, custom fields
+- **Safe for AI** - no create/update/delete operations
+- **MIT License**
 
-Enable debug logging by setting environment variables:
-
-```bash
-export MCP_DEBUG=1
-export INCIDENT_IO_DEBUG=1
-./start-mcp-server.sh
-```
-
-## 🤝 Contributing
-
-Contributions are welcome! Please see our [Development Guide](docs/DEVELOPMENT.md) for details on setup, testing, and contribution guidelines.
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- Built with the [Model Context Protocol](https://modelcontextprotocol.io/) specification
-- Powered by [incident.io](https://incident.io/) API
-- Created with assistance from Claude
+For detailed documentation, see the `docs/` folder.
